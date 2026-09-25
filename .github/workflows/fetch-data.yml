@@ -1,0 +1,34 @@
+name: Ambil Data ISPU Kalimantan Harian
+
+on:
+  schedule:
+    - cron: "0 15 * * *"  
+  workflow_dispatch:        
+
+jobs:
+  fetch-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Jalankan script pengambilan data
+        env:
+          AQICN_TOKEN: ${{ secrets.AQICN_TOKEN }}
+        run: python scripts/fetch_kalimantan.py
+
+      - name: Commit & push hasil data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/kalimantan_ispu.csv
+          git diff --staged --quiet || git commit -m "Update data ISPU Kalimantan $(date -u +'%Y-%m-%d')"
+          git push
